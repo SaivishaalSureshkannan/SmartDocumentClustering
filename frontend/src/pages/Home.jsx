@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { FiUpload, FiSearch, FiX } from 'react-icons/fi';
-import '../Home.css';
+import NavBar from '../components/NavBar';
+import ClusterExplore from './ClusterExplore';
+import '../styles/Home.css';
 
-const Home = () => {
+const UploadPage = ({ onUpload }) => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
-  //const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -20,7 +24,6 @@ const Home = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    
     const files = Array.from(e.dataTransfer.files);
     setUploadedFiles([...uploadedFiles, ...files]);
   };
@@ -37,35 +40,35 @@ const Home = () => {
   const handleUpload = () => {
     // Handle file upload logic here
     console.log('Uploading files:', uploadedFiles);
+    // Navigate to clusters page after upload
+    navigate('/clusters');
   };
 
   return (
     <div className="page-container">
       <div className="content-wrapper">
-        <h1 className="title">Smart Document Clustering</h1>
-    {/*}
         <div className="search-container">
-          <FiSearch className="search-icon" />
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Search through your documents..."
-            className="search-bar"
+            className="search-bar w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none transition-colors"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-    */}
+
         <div
-          className={`upload-container ${isDragging ? 'dragging' : ''}`}
+          className={`upload-area ${isDragging ? 'dragging' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
           <FiUpload className="upload-icon" />
-          <h3 className="upload-text">
+          <h3 className="text-lg font-medium text-gray-200 mb-2">
             Drag and drop your documents here
           </h3>
-          <p className="upload-or">or</p>
+          <p className="text-gray-400 mb-4">or</p>
           <label className="browse-button">
             <input
               type="file"
@@ -79,11 +82,12 @@ const Home = () => {
         </div>
 
         {uploadedFiles.length > 0 && (
-          <div>
+          <div className="uploaded-files">
+            <h3 className="text-lg font-medium text-gray-200 mb-4">Uploaded Files</h3>
             <div className="files-list">
               {uploadedFiles.map((file, index) => (
                 <div key={index} className="file-item">
-                  <span className="file-name">{file.name}</span>
+                  <span className="text-gray-300">{file.name}</span>
                   <button
                     onClick={() => removeFile(index)}
                     className="remove-button"
@@ -94,7 +98,7 @@ const Home = () => {
               ))}
             </div>
 
-            <div className="text-center">
+            <div className="text-center mt-6">
               <button
                 onClick={handleUpload}
                 className="upload-button"
@@ -106,6 +110,20 @@ const Home = () => {
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+const Home = () => {
+  return (
+    <div className="app">
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<UploadPage />} />
+        <Route path="/clusters" element={<ClusterExplore />} />
+        <Route path="/search" element={<div className="coming-soon">Search Page (Coming Soon)</div>} />
+        <Route path="/visualize" element={<div className="coming-soon">Visualize Page (Coming Soon)</div>} />
+      </Routes>
     </div>
   );
 };
