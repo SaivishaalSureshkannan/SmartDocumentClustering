@@ -3,9 +3,10 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { FiUpload, FiSearch, FiX } from 'react-icons/fi';
 import NavBar from '../components/NavBar';
 import ClusterExplore from './ClusterExplore';
+import Search from './Search';
 import '../styles/Home.css';
 
-const UploadPage = ({ onUpload }) => {
+const UploadPage = () => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -119,9 +120,8 @@ const Home = () => {
     <div className="app">
       <NavBar />
       <Routes>
-        <Route path="/" element={<UploadPage />} />
-        <Route path="/clusters" element={<ClusterExplore />} />
-        <Route path="/search" element={<div className="coming-soon">Search Page (Coming Soon)</div>} />
+        <Route path="/" element={<UploadPage />} />        <Route path="/clusters" element={<ClusterExplore />} />
+        <Route path="/search" element={<Search />} />
         <Route path="/visualize" element={<div className="coming-soon">Visualize Page (Coming Soon)</div>} />
       </Routes>
     </div>

@@ -1,0 +1,144 @@
+.search-page {
+  min-height: 100vh;
+  background-color: #1a1b26;
+  color: #fff;
+}
+
+.search-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 1rem 2rem 1rem; /* Added top padding to account for navbar */
+}
+
+.search-form {
+  margin-bottom: 2rem;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #666;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  font-size: 1.1rem;
+  border: 2px solid #2a2b36;
+  border-radius: 8px;
+  background-color: #2a2b36;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #7957d5;
+  box-shadow: 0 0 0 3px rgba(121, 87, 213, 0.2);
+}
+
+.search-button {
+  padding: 0.75rem 1.5rem;
+  background-color: #7957d5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: #6a4dbc;
+}
+
+.search-results-header {
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  color: #a9b1d6;
+}
+
+.result-card {
+  background-color: #2a2b36;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.result-card:hover {
+  transform: translateY(-2px);
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.result-title {
+  margin: 0;
+  color: #7aa2f7;
+  font-size: 1.1rem;
+}
+
+.relevance-score {
+  color: #9ece6a;
+  font-size: 0.9rem;
+}
+
+.result-excerpt {
+  color: #a9b1d6;
+  margin: 0.5rem 0;
+}
+
+.view-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #414868;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.view-button:hover {
+  background-color: #536083;
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 2rem;
+  color: #a9b1d6;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #a9b1d6;
+}
+
+@media (max-width: 768px) {
+  .search-container {
+    margin: 1rem auto;
+  }
+  
+  .search-input {
+    font-size: 1rem;
+  }
+  
+  .result-card {
+    padding: 1rem;
+  }
+}
