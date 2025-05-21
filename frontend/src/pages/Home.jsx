@@ -10,6 +10,7 @@ const UploadPage = () => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
   const handleDragOver = (e) => {
@@ -38,11 +39,36 @@ const UploadPage = () => {
     setUploadedFiles(uploadedFiles.filter((_, index) => index !== indexToRemove));
   };
 
-  const handleUpload = () => {
-    // Handle file upload logic here
-    console.log('Uploading files:', uploadedFiles);
-    // Navigate to clusters page after upload
-    navigate('/clusters');
+  const handleUpload = async () => {
+    if (uploadedFiles.length === 0) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    uploadedFiles.forEach(file => {
+      formData.append('files', file);
+    });
+
+    try {
+      const response = await fetch('http://localhost:8000/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        // Navigate to clusters page after successful upload
+        navigate('/clusters');
+      } else {
+        console.error('Upload failed:', data);
+        alert('Upload failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -102,10 +128,10 @@ const UploadPage = () => {
             <div className="text-center mt-6">
               <button
                 onClick={handleUpload}
-                className="upload-button"
-                disabled={uploadedFiles.length === 0}
+                className={`upload-button ${isUploading ? 'uploading' : ''}`}
+                disabled={uploadedFiles.length === 0 || isUploading}
               >
-                Upload Documents
+                {isUploading ? 'Uploading...' : 'Upload Documents'}
               </button>
             </div>
           </div>

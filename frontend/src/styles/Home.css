@@ -156,6 +156,12 @@ body, #root {
   cursor: not-allowed;
 }
 
+.upload-button.uploading {
+  background-color: #6b46c1;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .coming-soon {
   color: white;
   text-align: center;
