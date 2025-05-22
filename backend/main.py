@@ -7,6 +7,9 @@ import aiofiles
 from pdfminer.high_level import extract_text as extract_pdf_text
 from docx import Document
 import shutil
+from data_store import document_store
+from preprocessing import preprocess_text, tokens_to_string
+from vectorization import document_vectorizer
 
 app = FastAPI()
 
@@ -108,9 +111,28 @@ async def upload_files(files: List[UploadFile] = File(...)):
             # Extract text
             extracted_text = extract_text(file_path)
             
+            # Store document
+            doc_id = document_store.store_document(
+                filename=file.filename,
+                file_type=file_ext,
+                extracted_text=extracted_text
+            )
+            
+            # Preprocess text
+            tokens = preprocess_text(extracted_text)
+            processed_text = tokens_to_string(tokens)
+            
+            # Update document with preprocessed text
+            document_store.update_document(
+                doc_id,
+                preprocessed_text=processed_text
+            )
+            
+            # Add to results
             results.append({
                 "filename": file.filename,
-                "extracted_text": extracted_text  # Remove the [:500] limit
+                "doc_id": doc_id,
+                "status": "success"
             })
             
         except Exception as e:
@@ -119,10 +141,50 @@ async def upload_files(files: List[UploadFile] = File(...)):
                 "error": str(e)
             })
     
+    # After processing all documents, update vectors
+    all_docs = document_store.get_all_documents()
+    processed_texts = [
+        doc['preprocessed_text']
+        for doc in all_docs.values()
+        if doc['preprocessed_text'] is not None
+    ]
+    
+    if processed_texts:
+        # Generate TF-IDF vectors
+        vectors = document_vectorizer.fit_transform_documents(processed_texts)
+        
+        # Update documents with their vectors
+        for (doc_id, doc), vector in zip(all_docs.items(), vectors):
+            document_store.update_document(
+                doc_id,
+                vector=vector.toarray()[0].tolist()
+            )
+    
     return JSONResponse(content={
         "status": "success",
         "files": results
     })
+
+@app.get("/test-nltk")
+async def test_nltk():
+    """Test endpoint to verify NLTK functionality"""
+    test_text = "Hello! This is a test sentence. We're testing NLTK processing."
+    try:
+        # Test preprocessing
+        tokens = preprocess_text(test_text)
+        processed = tokens_to_string(tokens)
+        
+        return {
+            "status": "success",
+            "original": test_text,
+            "tokens": tokens,
+            "processed": processed
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
 
 @app.get("/")
 def read_root():
@@ -131,3 +193,37 @@ def read_root():
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
+
+@app.get("/document/{doc_id}")
+async def get_document(doc_id: str):
+    """Get document details including processed text"""
+    doc = document_store.get_document(doc_id)
+    if doc is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "Document not found"}
+        )
+    
+    return {
+        "filename": doc["filename"],
+        "file_type": doc["file_type"],
+        "extracted_text_preview": doc["extracted_text"][:200] + "...",  # Preview first 200 chars
+        "preprocessed_text": doc["preprocessed_text"],
+        "vector_length": len(doc["vector"]) if doc.get("vector") else 0
+    }
+
+@app.get("/documents")
+async def list_documents():
+    """List all documents and their preprocessing status"""
+    docs = document_store.get_all_documents()
+    return {
+        "total_documents": len(docs),
+        "documents": [
+            {
+                "doc_id": doc_id,
+                "filename": doc["filename"],
+                "status": "processed" if doc.get("vector") is not None else "pending"
+            }
+            for doc_id, doc in docs.items()
+        ]
+    }
