@@ -10,6 +10,8 @@ import shutil
 from data_store import document_store
 from preprocessing import preprocess_text, tokens_to_string
 from vectorization import document_vectorizer
+from clustering import document_clusterer
+import numpy as np
 
 app = FastAPI()
 
@@ -165,6 +167,44 @@ async def upload_files(files: List[UploadFile] = File(...)):
         "files": results
     })
 
+@app.post("/cluster")
+async def perform_clustering(num_clusters: int = 5):
+    """
+    Cluster all documents in the store
+    Args:
+        num_clusters: Number of clusters to create (default: 5)
+    """
+    # Get all documents
+    docs = document_store.get_all_documents()
+    if not docs:
+        return JSONResponse(
+            status_code=400,
+            content={"message": "No documents available for clustering"}
+        )
+    
+    # Get preprocessed texts and perform vectorization
+    doc_ids = list(docs.keys())
+    preprocessed_texts = [doc["preprocessed_text"] for doc in docs.values()]
+    vectors = document_vectorizer.fit_transform_documents(preprocessed_texts)
+    
+    # Perform clustering
+    labels, model = document_clusterer.cluster_documents(vectors, num_clusters)
+    
+    # Update document store with cluster labels
+    for doc_id, label in zip(doc_ids, labels):
+        document_store.update_document(doc_id, cluster=int(label))
+    
+    # Count documents per cluster
+    unique_labels, counts = np.unique(labels, return_counts=True)
+    cluster_distribution = {int(label): int(count) for label, count in zip(unique_labels, counts)}
+    
+    return {
+        "message": "Clustering complete",
+        "num_documents": len(doc_ids),
+        "num_clusters": num_clusters,
+        "cluster_distribution": cluster_distribution
+    }
+
 @app.get("/test-nltk")
 async def test_nltk():
     """Test endpoint to verify NLTK functionality"""
@@ -227,3 +267,8 @@ async def list_documents():
             for doc_id, doc in docs.items()
         ]
     }
+
+@app.get("/cluster-contents")
+async def get_cluster_contents():
+    """Get documents grouped by their clusters"""
+    return document_store.get_cluster_documents()

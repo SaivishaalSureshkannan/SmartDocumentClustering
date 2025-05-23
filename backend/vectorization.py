@@ -5,7 +5,12 @@ from scipy.sparse import spmatrix
 
 class DocumentVectorizer:
     def __init__(self):
-        self.vectorizer = TfidfVectorizer()
+        self.vectorizer = TfidfVectorizer(
+            max_features=1000,  # Limit features to most important ones
+            min_df=2,          # Remove terms that appear in less than 2 documents
+            max_df=0.9,        # Remove terms that appear in more than 90% of documents
+            stop_words='english'
+        )
         self.vectors: spmatrix = None
         
     def fit_transform_documents(self, processed_texts: List[str]) -> spmatrix:
