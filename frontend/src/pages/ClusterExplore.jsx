@@ -1,63 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiEye } from 'react-icons/fi';
 import '../styles/ClusterExplore.css';
 
 const ClusterExplore = () => {
   const [selectedCluster, setSelectedCluster] = useState(null);
-  const [kValue, setKValue] = useState(3);
+  const [kValue, setKValue] = useState(4);
+  const [clusters, setClusters] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Placeholder data
-  const clusters = [
-    {
-      id: 1,
-      name: "Cluster 1",
-      documentCount: 5,
-      documents: [
-        { id: 1, title: "Doc A" },
-        { id: 2, title: "Doc B" },
-        { id: 3, title: "Doc C" },
-        { id: 4, title: "Doc D" },
-        { id: 5, title: "Doc E" },
-      ]
-    },
-    {
-      id: 2,
-      name: "Cluster 2",
-      documentCount: 5,
-      documents: [
-        { id: 6, title: "Doc F" },
-        { id: 7, title: "Doc G" },
-        { id: 8, title: "Doc H" },
-        { id: 9, title: "Doc I" },
-        { id: 10, title: "Doc J" },
-      ]
-    },
-    {
-      id: 3,
-      name: "Cluster 3",
-      documentCount: 5,
-      documents: [
-        { id: 11, title: "Doc K" },
-        { id: 12, title: "Doc L" },
-        { id: 13, title: "Doc M" },
-        { id: 14, title: "Doc N" },
-        { id: 15, title: "Doc O" },
-      ]
+  // Fetch cluster data
+  const fetchClusterData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Fetch cluster contents
+      const response = await fetch('http://localhost:8000/cluster-contents');
+      if (!response.ok) throw new Error('Failed to fetch clusters');
+      const clusterData = await response.json();
+      setClusters(clusterData);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching clusters:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  // Initial fetch on component mount
+  useEffect(() => {
+    fetchClusterData();
+  }, []);
+
+  // Handle re-clustering with new k value
+  const handleReCluster = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Trigger re-clustering
+      const response = await fetch(`http://localhost:8000/cluster?num_clusters=${kValue}`, {
+        method: 'POST'
+      });
+      
+      if (!response.ok) throw new Error('Clustering failed');
+      
+      // Fetch updated cluster data
+      await fetchClusterData();
+    } catch (err) {
+      setError(err.message);
+      console.error('Error during clustering:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleClusterClick = (clusterId) => {
     setSelectedCluster(clusterId === selectedCluster ? null : clusterId);
-  };
-
-  const handleViewDocument = (docId) => {
-    console.log('Viewing document:', docId);
-    // This will be implemented later when document viewing is added
-  };
-
-  const handleReCluster = () => {
-    console.log('Re-clustering with k value:', kValue);
-    // This will be implemented later when backend is connected
   };
 
   const handleKValueChange = (e) => {
@@ -65,18 +65,21 @@ const ClusterExplore = () => {
     setKValue(value);
   };
 
+  if (loading) return <div className="loading">Processing clusters...</div>;
+  if (error) return <div className="error">Error: {error}</div>;
+
   return (
     <div className="cluster-explore">
       {/* Left Sidebar */}
       <div className="sidebar">
         <div className="cluster-list">
-          {clusters.map(cluster => (
+          {Object.entries(clusters).map(([clusterId, documents]) => (
             <div
-              key={cluster.id}
-              className={`cluster-item ${selectedCluster === cluster.id ? 'selected' : ''}`}
-              onClick={() => handleClusterClick(cluster.id)}
+              key={clusterId}
+              className={`cluster-item ${selectedCluster === clusterId ? 'selected' : ''}`}
+              onClick={() => handleClusterClick(clusterId)}
             >
-              {cluster.name} ({cluster.documentCount} docs)
+              Cluster {parseInt(clusterId) + 1} ({documents.length} docs)
             </div>
           ))}
         </div>
@@ -91,10 +94,14 @@ const ClusterExplore = () => {
               min="2"
               max="10"
             />
-            <label> ):</label>
+            <label> )</label>
           </div>
-          <button className="change-button" onClick={handleReCluster}>
-            Change
+          <button 
+            className="change-button" 
+            onClick={handleReCluster}
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : 'Change'}
           </button>
         </div>
       </div>
@@ -102,22 +109,18 @@ const ClusterExplore = () => {
       {/* Main Content Area */}
       <div className="main-content">
         {(selectedCluster ? 
-          clusters.filter(c => c.id === selectedCluster) : 
-          clusters
-        ).map(cluster => (
-          <div key={cluster.id} className="cluster-section">
-            <h2>{cluster.name}:</h2>
+          [[selectedCluster, clusters[selectedCluster]]] : 
+          Object.entries(clusters)
+        ).map(([clusterId, documents]) => (
+          <div key={clusterId} className="cluster-section">
+            <h2>Cluster {parseInt(clusterId) + 1}:</h2>
             <div className="documents-grid">
-              {cluster.documents.map(doc => (
-                <div key={doc.id} className="document-card">
-                  <span className="doc-title">- {doc.title}</span>
-                  <button 
-                    className="view-button"
-                    onClick={() => handleViewDocument(doc.id)}
-                    title="View document"
-                  >
-                    <FiEye />
-                  </button>
+              {documents.map((doc, index) => (
+                <div key={index} className="document-card">
+                  <div className="doc-content">
+                    <h3>{doc.filename}</h3>
+                    <p>{doc.extracted_text}</p>
+                  </div>
                 </div>
               ))}
             </div>
