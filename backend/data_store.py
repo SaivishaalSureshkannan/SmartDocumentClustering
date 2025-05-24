@@ -1,10 +1,38 @@
 from typing import Dict, Any, List
 from datetime import datetime
+import json
+from pathlib import Path
 
 class DocumentStore:
     def __init__(self):
         self.documents: Dict[str, Dict[str, Any]] = {}
+        self.data_dir = Path(__file__).parent / "data"
+        self.data_file = self.data_dir / "document_store.json"
         
+        # Create data directory if it doesn't exist
+        self.data_dir.mkdir(exist_ok=True)
+        
+        # Load existing data if available
+        self.load_data()
+        
+    def load_data(self):
+        """Load document data from JSON file"""
+        try:
+            if self.data_file.exists():
+                with open(self.data_file, 'r') as f:
+                    self.documents = json.load(f)
+        except Exception as e:
+            print(f"Error loading data: {e}")
+            self.documents = {}
+            
+    def save_data(self):
+        """Save document data to JSON file"""
+        try:
+            with open(self.data_file, 'w') as f:
+                json.dump(self.documents, f, indent=2)
+        except Exception as e:
+            print(f"Error saving data: {e}")
+            
     def store_document(self, filename: str, file_type: str, extracted_text: str):
         """Store a document with its metadata and content"""
         doc_id = f"{filename}_{datetime.now().timestamp()}"
@@ -17,6 +45,7 @@ class DocumentStore:
             'vector': None,  # Will be populated after vectorization
             'cluster': None  # Will be populated after clustering
         }
+        self.save_data()
         return doc_id
         
     def get_document(self, doc_id: str) -> Dict[str, Any]:
@@ -31,10 +60,12 @@ class DocumentStore:
         """Update document attributes"""
         if doc_id in self.documents:
             self.documents[doc_id].update(kwargs)
+            self.save_data()
             
     def clear_all(self):
         """Clear all stored documents"""
         self.documents.clear()
+        self.save_data()
         
     def get_cluster_documents(self) -> Dict[int, List[Dict[str, str]]]:
         """Get documents grouped by their cluster"""
@@ -45,7 +76,7 @@ class DocumentStore:
                 if cluster not in cluster_docs:
                     cluster_docs[cluster] = []
                 cluster_docs[cluster].append({
-                    'doc_id': doc_id,  # Include document ID
+                    'doc_id': doc_id,
                     'filename': doc['filename'],
                     'extracted_text': doc['extracted_text'][:100] + '...'  # First 100 chars
                 })
@@ -55,6 +86,7 @@ class DocumentStore:
         """Delete a document from the store"""
         if doc_id in self.documents:
             del self.documents[doc_id]
+            self.save_data()
 
 # Global instance to be used across the application
 document_store = DocumentStore()
