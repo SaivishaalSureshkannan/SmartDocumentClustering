@@ -70,13 +70,31 @@ const ClusterExplore = () => {
   const handlePreviewClick = (doc) => {
     setPreviewDoc(previewDoc === doc ? null : doc);
   };
+  // Handler for document deletion
+  const handleDeleteClick = async (clusterId, docIndex, doc) => {
+    try {
+      if (!doc.doc_id) {
+        throw new Error('Document ID not found');
+      }
+      
+      const response = await fetch(`http://localhost:8000/document/${doc.doc_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
-  // Handler for delete (frontend only for now)
-  const handleDeleteClick = (clusterId, docIndex) => {
-    // This is just UI update, backend integration will be added later
-    const newClusters = { ...clusters };
-    newClusters[clusterId] = clusters[clusterId].filter((_, index) => index !== docIndex);
-    setClusters(newClusters);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete document');
+      }
+
+      // Refresh the cluster data after successful deletion
+      await fetchClusterData();
+    } catch (err) {
+      setError(err.message);
+      console.error('Error deleting document:', err);
+    }
   };
 
   if (loading) return <div className="loading">Processing clusters...</div>;
@@ -146,7 +164,7 @@ const ClusterExplore = () => {
                     </button>
                     <button 
                       className="icon-button delete"
-                      onClick={() => handleDeleteClick(clusterId, index)}
+                      onClick={() => handleDeleteClick(clusterId, index, doc)}
                       title="Delete"
                     >
                       <FiTrash2 />

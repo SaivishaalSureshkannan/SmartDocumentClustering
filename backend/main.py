@@ -272,3 +272,30 @@ async def list_documents():
 async def get_cluster_contents():
     """Get documents grouped by their clusters"""
     return document_store.get_cluster_documents()
+
+@app.delete("/document/{doc_id}")
+async def delete_document(doc_id: str):
+    """Delete a document from storage and file system"""
+    try:
+        # Get document before deletion to access filename
+        doc = document_store.get_document(doc_id)
+        if doc is None:
+            return JSONResponse(
+                status_code=404,
+                content={"error": "Document not found"}
+            )
+        
+        # Delete file from uploads folder
+        file_path = os.path.join(UPLOAD_DIR, doc["filename"])
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        
+        # Remove from document store
+        document_store.delete_document(doc_id)
+        
+        return {"status": "success", "message": f"Document {doc_id} deleted"}
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to delete document: {str(e)}"}
+        )

@@ -45,10 +45,16 @@ class DocumentStore:
                 if cluster not in cluster_docs:
                     cluster_docs[cluster] = []
                 cluster_docs[cluster].append({
+                    'doc_id': doc_id,  # Include document ID
                     'filename': doc['filename'],
                     'extracted_text': doc['extracted_text'][:100] + '...'  # First 100 chars
                 })
         return cluster_docs
+
+    def delete_document(self, doc_id: str) -> None:
+        """Delete a document from the store"""
+        if doc_id in self.documents:
+            del self.documents[doc_id]
 
 # Global instance to be used across the application
 document_store = DocumentStore()
