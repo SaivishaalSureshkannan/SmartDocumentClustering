@@ -71,6 +71,8 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   transition: transform 0.2s ease;
   border: 1px solid #333333;
+  position: relative;
+  padding-top: 30px;
 }
 
 .document-card:hover {
@@ -89,6 +91,7 @@
   font-size: 0.9rem;
   line-height: 1.4;
   margin: 0;
+  transition: all 0.3s ease;
 }
 
 .recluster-section {
@@ -142,4 +145,35 @@
   color: #ffffff;
   font-size: 1.2rem;
   margin-left: 250px;
+}
+
+.doc-actions {
+  display: flex;
+  gap: 8px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.icon-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #000;
+}
+
+.icon-button.delete:hover {
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
 }

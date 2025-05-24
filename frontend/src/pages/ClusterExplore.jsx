@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiEye } from 'react-icons/fi';
+import { FiEye, FiTrash2 } from 'react-icons/fi';
 import '../styles/ClusterExplore.css';
 
 const ClusterExplore = () => {
@@ -8,6 +8,7 @@ const ClusterExplore = () => {
   const [clusters, setClusters] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [previewDoc, setPreviewDoc] = useState(null); // New state for document preview
 
   // Fetch cluster data
   const fetchClusterData = async () => {
@@ -65,6 +66,19 @@ const ClusterExplore = () => {
     setKValue(value);
   };
 
+  // Handler for document preview
+  const handlePreviewClick = (doc) => {
+    setPreviewDoc(previewDoc === doc ? null : doc);
+  };
+
+  // Handler for delete (frontend only for now)
+  const handleDeleteClick = (clusterId, docIndex) => {
+    // This is just UI update, backend integration will be added later
+    const newClusters = { ...clusters };
+    newClusters[clusterId] = clusters[clusterId].filter((_, index) => index !== docIndex);
+    setClusters(newClusters);
+  };
+
   if (loading) return <div className="loading">Processing clusters...</div>;
   if (error) return <div className="error">Error: {error}</div>;
 
@@ -119,7 +133,24 @@ const ClusterExplore = () => {
                 <div key={index} className="document-card">
                   <div className="doc-content">
                     <h3>{doc.filename}</h3>
-                    <p>{doc.extracted_text}</p>
+                    <p>{previewDoc === doc ? doc.extracted_text : 
+                        `${doc.extracted_text.substring(0, 100)}...`}</p>
+                  </div>
+                  <div className="doc-actions">
+                    <button 
+                      className="icon-button"
+                      onClick={() => handlePreviewClick(doc)}
+                      title="Preview"
+                    >
+                      <FiEye />
+                    </button>
+                    <button 
+                      className="icon-button delete"
+                      onClick={() => handleDeleteClick(clusterId, index)}
+                      title="Delete"
+                    >
+                      <FiTrash2 />
+                    </button>
                   </div>
                 </div>
               ))}
