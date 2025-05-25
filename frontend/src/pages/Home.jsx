@@ -4,6 +4,7 @@ import { FiUpload, FiSearch, FiX } from 'react-icons/fi';
 import NavBar from '../components/NavBar';
 import ClusterExplore from './ClusterExplore';
 import Search from './Search';
+import DocumentViewer from './DocumentViewer';
 import '../styles/Home.css';
 
 const UploadPage = () => {
@@ -146,8 +147,10 @@ const Home = () => {
     <div className="app">
       <NavBar />
       <Routes>
-        <Route path="/" element={<UploadPage />} />        <Route path="/clusters" element={<ClusterExplore />} />
+        <Route path="/" element={<UploadPage />} />
+        <Route path="/clusters" element={<ClusterExplore />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/view/:docId" element={<DocumentViewer />} />
         <Route path="/visualize" element={<div className="coming-soon">Visualize Page (Coming Soon)</div>} />
       </Routes>
     </div>

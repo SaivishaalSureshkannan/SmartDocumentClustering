@@ -244,13 +244,10 @@ async def get_document(doc_id: str):
             status_code=404,
             content={"error": "Document not found"}
         )
-    
     return {
         "filename": doc["filename"],
-        "file_type": doc["file_type"],
-        "extracted_text_preview": doc["extracted_text"][:200] + "...",  # Preview first 200 chars
-        "preprocessed_text": doc["preprocessed_text"],
-        "vector_length": len(doc["vector"]) if doc.get("vector") else 0
+        "content": doc["extracted_text"],  # Return the full content
+        "file_type": doc["file_type"]
     }
 
 @app.get("/documents")

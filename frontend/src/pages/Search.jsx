@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import { FiSearch, FiEye } from 'react-icons/fi';
 import '../styles/Search.css';
@@ -104,10 +105,11 @@ const Search = () => {
                                             ⭐ {formatSimilarity(result.similarity)}
                                         </span>
                                     </div>
-                                    <p className="result-excerpt">{result.snippet}</p>
-                                    <button className="view-button">
-                                        <FiEye /> View
-                                    </button>
+                                    <p className="result-excerpt">{result.snippet}</p>                                    <Link to={`/view/${result.doc_id}`}>
+                                        <button className="view-button">
+                                            <FiEye /> View
+                                        </button>
+                                    </Link>
                                 </div>
                             ))
                         ) : (
