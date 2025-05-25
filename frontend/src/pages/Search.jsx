@@ -6,31 +6,37 @@ import '../styles/Search.css';
 const Search = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
-    const [searchResults, setSearchResults] = useState([]);
-
-    const handleSearch = (e) => {
+    const [searchResults, setSearchResults] = useState([]);    const handleSearch = async (e) => {
         e.preventDefault(); 
         if (!searchQuery.trim()) return; // Prevent empty searches
 
         setIsSearching(true);
+        try {
+            const response = await fetch('http://localhost:8000/semantic-search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(searchQuery)
+            });
 
-        setTimeout(() => {
-            setSearchResults([
-        {
-          id: 1,
-          title: 'financial_summary.pdf',
-          excerpt: 'profit increased by 23% in Q3',
-          relevance: 90
-        },
-        {
-          id: 2,
-          title: 'q3_overview_notes.docx',
-          excerpt: 'the third quarter closed strongly',
-          relevance: 88
+            const data = await response.json();
+            if (data.results) {
+                // Map the results to match our component's expected format
+                const formattedResults = data.results.map((result) => ({
+                    id: result.doc_id,
+                    title: result.filename,
+                    excerpt: result.snippet,
+                    relevance: Math.round(result.similarity * 100) // Convert to percentage
+                }));
+                setSearchResults(formattedResults);
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            // You could set an error state here
+        } finally {
+            setIsSearching(false);
         }
-      ]);
-      setIsSearching(false);
-    }, 1000);
   };
 
 return (

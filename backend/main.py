@@ -1,6 +1,6 @@
 from typing import Union, List
 import os
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Body
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import aiofiles
@@ -11,6 +11,7 @@ from data_store import document_store
 from preprocessing import preprocess_text, tokens_to_string
 from vectorization import document_vectorizer
 from clustering import document_clusterer
+from semantic_search import SemanticSearch
 import numpy as np
 
 app = FastAPI()
@@ -299,3 +300,48 @@ async def delete_document(doc_id: str):
             status_code=500,
             content={"error": f"Failed to delete document: {str(e)}"}
         )
+
+# Create semantic search instance
+semantic_searcher = SemanticSearch()
+
+@app.post("/semantic-search")
+async def perform_semantic_search(query: str = Body(..., embed=True)):
+    """
+    Perform semantic search across documents
+    Args:
+        query: Search query string
+    Returns:
+        List of documents with similarity scores
+    """
+    # Get all documents
+    docs = document_store.get_all_documents()
+    if not docs:
+        return JSONResponse(
+            status_code=400,
+            content={"message": "No documents available for search"}
+        )
+    
+    # Update embeddings
+    semantic_searcher.embed_documents(docs)
+    
+    # Perform search
+    results = semantic_searcher.search(query)
+    
+    # Format results
+    formatted_results = []
+    for doc_id, similarity in results:
+        doc = docs[doc_id]
+        # Get a relevant snippet - first 200 chars for simplicity
+        # In a real app, you'd want to do smart snippet extraction
+        snippet = doc.get("extracted_text", "")[:200] + "..."
+        
+        formatted_results.append({
+            "filename": doc["filename"],
+            "snippet": snippet,
+            "similarity": float(similarity),  # Convert to float for JSON serialization
+            "doc_id": doc_id
+        })
+    
+    return {
+        "results": formatted_results
+    }
