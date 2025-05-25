@@ -294,6 +294,10 @@ async def delete_document(doc_id: str):
         # Remove from document store
         document_store.delete_document(doc_id)
         
+        # Remove from semantic search embeddings
+        if hasattr(semantic_searcher, 'document_embeddings') and doc_id in semantic_searcher.document_embeddings:
+            del semantic_searcher.document_embeddings[doc_id]
+        
         return {"status": "success", "message": f"Document {doc_id} deleted"}
     except Exception as e:
         return JSONResponse(
@@ -330,17 +334,22 @@ async def perform_semantic_search(query: str = Body(..., embed=True)):
     # Format results
     formatted_results = []
     for doc_id, similarity in results:
-        doc = docs[doc_id]
-        # Get a relevant snippet - first 200 chars for simplicity
-        # In a real app, you'd want to do smart snippet extraction
-        snippet = doc.get("extracted_text", "")[:200] + "..."
-        
-        formatted_results.append({
-            "filename": doc["filename"],
-            "snippet": snippet,
-            "similarity": float(similarity),  # Convert to float for JSON serialization
-            "doc_id": doc_id
-        })
+        try:
+            doc = docs.get(doc_id)  # Use get() instead of direct access
+            if doc:  # Only include if document exists
+                # Get a relevant snippet - first 200 chars for simplicity
+                # In a real app, you'd want to do smart snippet extraction
+                snippet = doc.get("extracted_text", "")[:200] + "..."
+                
+                formatted_results.append({
+                    "filename": doc["filename"],
+                    "snippet": snippet,
+                    "similarity": float(similarity),  # Convert to float for JSON serialization
+                    "doc_id": doc_id
+                })
+        except Exception as e:
+            print(f"Error processing search result for doc_id {doc_id}: {str(e)}")
+            continue  # Skip this result if there's an error
     
     return {
         "results": formatted_results
