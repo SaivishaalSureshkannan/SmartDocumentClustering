@@ -135,6 +135,12 @@ const ClusterExplore = () => {
           >
             {loading ? 'Processing...' : 'Change'}
           </button>
+          <button 
+            className="clear-button"
+            disabled={loading}
+          >
+            Clear All
+          </button>
         </div>
       </div>
 

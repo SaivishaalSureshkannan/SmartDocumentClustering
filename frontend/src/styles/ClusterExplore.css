@@ -126,6 +126,7 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  margin-bottom: 10px;
 }
 
 .change-button:hover {
@@ -133,6 +134,26 @@
 }
 
 .change-button:disabled {
+  background-color: #404040;
+  cursor: not-allowed;
+}
+
+.clear-button {
+  width: 100%;
+  padding: 8px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clear-button:hover {
+  background-color: #c82333;
+}
+
+.clear-button:disabled {
   background-color: #404040;
   cursor: not-allowed;
 }
