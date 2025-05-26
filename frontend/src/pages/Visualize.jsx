@@ -3,25 +3,37 @@ import * as d3 from "d3";
 import NavBar from '../components/NavBar';
 import '../styles/Visualize.css';
 
-const mockData = [
-  { id: "textA.txt", x: 10, y: 20, cluster: 0 },
-  { id: "textB.txt", x: 20, y: 30, cluster: 0 },
-  { id: "textC.txt", x: 50, y: 60, cluster: 1 },
-  { id: "textD.txt", x: 70, y: 40, cluster: 1 },
-  { id: "textE.txt", x: 90, y: 20, cluster: 2 },
-];
-
 const clusterColors = d3.schemeCategory10;
 
 const Visualize = () => {
   const svgRef = useRef();
+  const [data, setData] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
 
   useEffect(() => {
-    // Get the container dimensions
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/tsne');
+        if (!response.ok) throw new Error('Failed to fetch TSNE data');
+        const tsneData = await response.json();
+        setData(tsneData);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching TSNE data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+  useEffect(() => {
+    if (loading || error || !data.length) return;    // Get the container dimensions
     const container = d3.select(svgRef.current).node().parentElement;
     const width = container.clientWidth;
     const height = container.clientHeight;
-    const margin = { top: 40, right: 40, bottom: 40, left: 40 };
+    const margin = { top: 80, right: 100, bottom: 80, left: 100 };  // Increased margins
 
     // Clear existing SVG content
     const svg = d3.select(svgRef.current)
@@ -29,34 +41,63 @@ const Visualize = () => {
       .attr("height", height)
       .style("background", "#1f1f1f");
 
-    svg.selectAll("*").remove();
+    svg.selectAll("*").remove();    // Calculate domains with padding
+    const xExtent = d3.extent(data, d => d.x);
+    const yExtent = d3.extent(data, d => d.y);
+    
+    // Add 50% padding to the domains and ensure symmetrical bounds
+    const xPadding = Math.max(Math.abs(xExtent[1]), Math.abs(xExtent[0])) * 0.5;
+    const yPadding = Math.max(Math.abs(yExtent[1]), Math.abs(yExtent[0])) * 0.5;
 
-    // Create scales with proper margins
+    // Create scales with proper margins and padding, using symmetrical bounds
     const xScale = d3.scaleLinear()
-      .domain(d3.extent(mockData, d => d.x))
+      .domain([-xPadding * 1.5, xPadding * 1.5]) // Increased padding factor to 1.5
       .range([margin.left, width - margin.right]);
 
     const yScale = d3.scaleLinear()
-      .domain(d3.extent(mockData, d => d.y))
+      .domain([-yPadding * 1.5, yPadding * 1.5]) // Increased padding factor to 1.5
       .range([height - margin.bottom, margin.top]);
 
     // Add axes with proper styling
     const xAxis = d3.axisBottom(xScale);
     const yAxis = d3.axisLeft(yScale);
 
-    // Add X axis
+    // Add X axis with label
     svg.append("g")
       .attr("transform", `translate(0,${height - margin.bottom})`)
       .attr("color", "white")
-      .call(xAxis);
+      .call(xAxis.ticks(10).tickSize(-5))
+      .call(g => g.select(".domain").attr("stroke", "white").attr("stroke-width", 2))
+      .call(g => g.selectAll(".tick line").attr("stroke", "white"))
+      .call(g => g.selectAll(".tick text").attr("fill", "white").attr("dy", "1em"));
 
-    // Add Y axis
+    // Add X axis label
+    svg.append("text")
+      .attr("x", width / 2)
+      .attr("y", height - margin.bottom / 4)
+      .attr("fill", "white")
+      .attr("text-anchor", "middle")
+      .attr("font-size", "14px")
+      .text("t-SNE Dimension 1");
+
+    // Add Y axis with label
     svg.append("g")
       .attr("transform", `translate(${margin.left},0)`)
       .attr("color", "white")
-      .call(yAxis);
+      .call(yAxis.ticks(10).tickSize(-5))
+      .call(g => g.select(".domain").attr("stroke", "white"))
+      .call(g => g.selectAll(".tick line").attr("stroke", "white"));
 
-    // Add grid lines (optional)
+    // Add Y axis label
+    svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -height / 2)
+      .attr("y", margin.left / 3)
+      .attr("fill", "white")
+      .attr("text-anchor", "middle")
+      .text("t-SNE Dimension 2");
+
+    // Add grid lines
     svg.append("g")
       .attr("class", "grid")
       .attr("opacity", 0.1)
@@ -71,18 +112,43 @@ const Visualize = () => {
 
     // Add circles with transition
     svg.selectAll("circle")
-      .data(mockData)
+      .data(data)
       .enter()
       .append("circle")
       .attr("cx", d => xScale(d.x))
       .attr("cy", d => yScale(d.y))
-      .attr("r", 0)  // Start with radius 0
+      .attr("r", 0)
       .attr("fill", d => clusterColors[d.cluster])
       .attr("stroke", "white")
       .attr("stroke-width", 1)
-      .transition()  // Add transition
+      .transition()
       .duration(1000)
-      .attr("r", 8);  // End with radius 8
+      .attr("r", 8);
+
+    // Add legend
+    const uniqueClusters = [...new Set(data.map(d => d.cluster))].sort((a, b) => a - b);
+    const legend = svg.append("g")
+      .attr("class", "legend")
+      .attr("transform", `translate(${width - margin.right + 20}, ${margin.top})`);
+
+    legend.selectAll("g")
+      .data(uniqueClusters)
+      .enter()
+      .append("g")
+      .attr("transform", (d, i) => `translate(0, ${i * 25})`)
+      .each(function(d) {
+        d3.select(this)
+          .append("circle")
+          .attr("r", 6)
+          .attr("fill", clusterColors[d]);
+        
+        d3.select(this)
+          .append("text")
+          .attr("x", 15)
+          .attr("y", 5)
+          .attr("fill", "white")
+          .text(`Cluster ${d}`);
+      });
 
     // Tooltip
     const tooltip = d3.select("#tooltip");
@@ -109,19 +175,27 @@ const Visualize = () => {
         tooltip.style("opacity", 0);
       })
       .on("click", (_, d) => {
-        alert(`You clicked ${d.id}`);
-        // Optionally route to document viewer
+        window.location.href = `/view/${d.id}`;
       });
-  }, []);
-
+  }, [data, loading, error]);
   return (
     <div className="min-h-screen bg-gray-900">
       <NavBar />
       <div className="visualization-container">
-        <h1 className="visualization-title text-2xl font-bold"> Document Visualization</h1>
+        <h1 className="visualization-title text-2xl font-bold">Document Visualization</h1>
         <div className="scatter-container">
-          <svg ref={svgRef} className="scatter-plot" />
-          <div id="tooltip" />
+          {loading ? (
+            <div className="loading">Loading visualization...</div>
+          ) : error ? (
+            <div className="error">Error: {error}</div>
+          ) : data.length === 0 ? (
+            <div className="empty">No documents available for visualization</div>
+          ) : (
+            <>
+              <svg ref={svgRef} className="scatter-plot" />
+              <div id="tooltip" />
+            </>
+          )}
         </div>
       </div>
     </div>

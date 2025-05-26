@@ -12,6 +12,8 @@ from preprocessing import preprocess_text, tokens_to_string
 from vectorization import document_vectorizer
 from clustering import document_clusterer
 from semantic_search import SemanticSearch
+from sklearn.manifold import TSNE
+from models import TSNEResult
 import numpy as np
 
 app = FastAPI()
@@ -389,3 +391,48 @@ async def clear_all():
                 "message": f"Error clearing application state: {str(e)}"
             }
         )
+
+@app.get("/tsne", response_model=List[TSNEResult])
+async def get_tsne_projection():
+    """Get TSNE projection of document vectors for visualization"""
+    # Get all documents with vectors
+    docs = document_store.get_all_documents()
+    if len(docs) < 2:
+        return []
+    
+    # Extract document vectors and metadata
+    doc_vectors = []
+    doc_ids = []
+    doc_clusters = []
+    
+    for doc_id, doc in docs.items():
+        if doc.get('vector') is not None and doc.get('cluster') is not None:
+            doc_vectors.append(doc['vector'])
+            doc_ids.append(doc['filename'])  # Using filename as ID
+            doc_clusters.append(doc['cluster'])
+    
+    if len(doc_vectors) < 2:
+        return []
+        
+    # Convert to numpy array
+    vectors = np.array(doc_vectors)
+    
+    # Perform t-SNE
+    tsne = TSNE(
+        n_components=2, 
+        random_state=42,
+        perplexity=min(30, len(vectors) - 1)
+    )
+    projected = tsne.fit_transform(vectors)
+    
+    # Create result objects
+    results = []
+    for i in range(len(projected)):
+        results.append(TSNEResult(
+            x=float(projected[i, 0]),
+            y=float(projected[i, 1]),
+            cluster=doc_clusters[i],
+            id=doc_ids[i]
+        ))
+    
+    return results

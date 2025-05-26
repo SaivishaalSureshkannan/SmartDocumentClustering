@@ -5,34 +5,56 @@
 
 .scatter-container {
   width: 100%;
-  height: 700px;  /* Explicit height */
+  height: 800px;  /* Increased height */
   background: #1f1f1f;
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 2rem;  /* Increased padding */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-bottom: 2rem; /* Added margin at bottom */
 }
 
 .scatter-plot {
   width: 100%;
   height: 100%;
-  max-width: 1000px;  /* Maximum width */
   background: #1f1f1f;
+  overflow: visible; /* Allow points to render outside the SVG bounds */
 }
 
 #tooltip {
   position: absolute;
   z-index: 10;
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.8);
-  border-radius: 4px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 6px;
   pointer-events: none;
+  font-size: 14px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 .visualization-title {
   color: white;
   margin-bottom: 1.5rem;
   padding-top: 1rem;
+}
+
+.loading, .error, .empty {
+  color: white;
+  text-align: center;
+  font-size: 1.2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.error {
+  color: #ff6b6b;
 }
