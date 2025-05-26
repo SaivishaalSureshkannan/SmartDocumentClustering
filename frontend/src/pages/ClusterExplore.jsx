@@ -97,6 +97,33 @@ const ClusterExplore = () => {
     }
   };
 
+  // Handler for clearing all documents
+  const handleClearAll = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('http://localhost:8000/clear-all', {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to clear documents');
+      }
+
+      // Reset local state
+      setClusters({});
+      setSelectedCluster(null);
+      setPreviewDoc(null);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error clearing documents:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) return <div className="loading">Processing clusters...</div>;
   if (error) return <div className="error">Error: {error}</div>;
 
@@ -137,7 +164,8 @@ const ClusterExplore = () => {
           </button>
           <button 
             className="clear-button"
-            disabled={loading}
+            onClick={handleClearAll}
+            disabled={loading || Object.keys(clusters).length === 0}
           >
             Clear All
           </button>

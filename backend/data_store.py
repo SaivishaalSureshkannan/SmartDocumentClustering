@@ -51,7 +51,13 @@ class DocumentStore:
     def get_document(self, doc_id: str) -> Dict[str, Any]:
         """Retrieve a document by its ID"""
         return self.documents.get(doc_id)
-        
+
+    def clear_all(self):
+        """Clear all documents and remove the data file"""
+        self.documents = {}
+        if self.data_file.exists():
+            self.data_file.unlink()
+            
     def get_all_documents(self) -> Dict[str, Dict[str, Any]]:
         """Get all stored documents"""
         return self.documents
@@ -62,11 +68,6 @@ class DocumentStore:
             self.documents[doc_id].update(kwargs)
             self.save_data()
             
-    def clear_all(self):
-        """Clear all stored documents"""
-        self.documents.clear()
-        self.save_data()
-        
     def get_cluster_documents(self) -> Dict[int, List[Dict[str, str]]]:
         """Get documents grouped by their cluster"""
         cluster_docs = {}

@@ -10,6 +10,10 @@ class DocumentVectorizer:
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.vectors = None
         
+    def reset(self):
+        """Reset the vectorizer state"""
+        self.vectors = None
+        
     def fit_transform_documents(self, processed_texts: List[str]) -> spmatrix:
         """
         Convert preprocessed texts into dense vectors using Sentence Transformer

@@ -12,6 +12,12 @@ class DocumentClusterer:
         # Create models directory if it doesn't exist
         self.model_path.parent.mkdir(exist_ok=True)
         
+    def reset(self):
+        """Reset the clusterer state and remove saved model"""
+        self.model = None
+        if self.model_path.exists():
+            self.model_path.unlink()
+            
     def cluster_documents(self, doc_vectors: spmatrix, num_clusters: int = 4) -> tuple[np.ndarray, KMeans]:
         """
         Cluster document vectors using K-means with enhanced parameters

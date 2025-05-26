@@ -351,3 +351,41 @@ async def perform_semantic_search(query: str = Body(..., embed=True)):
     return {
         "results": formatted_results
     }
+
+@app.post("/clear-all")
+async def clear_all():
+    """Clear all uploaded documents and reset application state"""
+    try:
+        # Clear uploads directory
+        for filename in os.listdir(UPLOAD_DIR):
+            file_path = os.path.join(UPLOAD_DIR, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception as e:
+                print(f"Error deleting file {filename}: {e}")
+
+        # Clear document store
+        document_store.clear_all()
+        
+        # Clear semantic search embeddings
+        if hasattr(semantic_searcher, 'document_embeddings'):
+            semantic_searcher.document_embeddings.clear()
+        
+        # Reset document vectorizer and clusterer
+        document_vectorizer.reset()
+        document_clusterer.reset()
+
+        return {
+            "status": "success",
+            "message": "All documents and application state cleared successfully"
+        }
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": f"Error clearing application state: {str(e)}"
+            }
+        )
