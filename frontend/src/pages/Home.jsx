@@ -5,6 +5,7 @@ import NavBar from '../components/NavBar';
 import ClusterExplore from './ClusterExplore';
 import Search from './Search';
 import DocumentViewer from './DocumentViewer';
+import Visualize from './visualize';
 import '../styles/Home.css';
 
 const UploadPage = () => {
@@ -151,7 +152,7 @@ const Home = () => {
         <Route path="/clusters" element={<ClusterExplore />} />
         <Route path="/search" element={<Search />} />
         <Route path="/view/:docId" element={<DocumentViewer />} />
-        <Route path="/visualize" element={<div className="coming-soon">Visualize Page (Coming Soon)</div>} />
+        <Route path="/visualize" element={<Visualize />} />
       </Routes>
     </div>
   );
