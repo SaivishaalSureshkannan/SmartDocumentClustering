@@ -66,5 +66,3 @@ npm run dev
 3. Adjust clustering parameters if needed
 4. View document clusters and relationships
 5. Use semantic search to find related documents
-
--
