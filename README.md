@@ -1,12 +1,70 @@
-# React + Vite
+# Smart Document Clustering
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack application that leverages machine learning and NLP techniques to automatically organize and search through document collections by clustering similar documents together and providing semantic search capabilities.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Multi-format Document Support**
+  - PDF, DOCX, and TXT file processing
+  - Maintains document structure and formatting
+  - Batch upload capability
 
-## Expanding the ESLint configuration
+- **Intelligent Document Analysis**
+  - Automated document clustering using K-means
+  - Semantic search powered by BERT embeddings
+  - Interactive document visualization using t-SNE
+  - TF-IDF based document vectorization
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Modern Web Interface**
+  - Real-time clustering visualization
+  - Intuitive document management
+  - Interactive search capabilities
+
+## Tech Stack
+
+### Backend
+- Python FastAPI
+- scikit-learn
+- NLTK
+- Sentence Transformers (BERT)
+- PDFMiner
+- python-docx
+
+### Frontend
+- React
+- TypeScript
+- Vite
+
+## Setup and Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/yourusername/SmartDocumentClustering.git
+cd SmartDocumentClustering
+```
+
+2. **Set up Backend**
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
+
+3. **Set up Frontend**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Usage
+
+1. Access the application at `http://localhost:5173`
+2. Upload documents using the file upload interface
+3. Adjust clustering parameters if needed
+4. View document clusters and relationships
+5. Use semantic search to find related documents
+
+-
