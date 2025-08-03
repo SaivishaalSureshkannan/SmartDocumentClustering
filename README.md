@@ -32,7 +32,7 @@ A full-stack application that leverages machine learning and NLP techniques to a
 
 ### Frontend
 - React
-- TypeScript
+- JavaScript
 - Vite
 
 ## Setup and Installation
